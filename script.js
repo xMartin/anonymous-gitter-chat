@@ -46,18 +46,11 @@
   function handleNewMessages(messages) {
     rememberLastMessageId(messages);
 
-    if (messages.length) {
-      console.log('lastMessageId', lastMessageId);
-      console.log(messages);
-
-      messages.forEach(function (message) {
-        var date = new Date(message.sent).toLocaleTimeString();
-        var html = '<div class="message"><div>' + date + '</div><div>' + message.text + '</div></div>';
-        $('#messagedisplay').append(html);
-      });
-    } else {
-      console.log('no new messages');
-    }
+    messages.forEach(function (message) {
+      var date = new Date(message.sent).toLocaleTimeString();
+      var html = '<div class="message"><div>' + date + '</div><div>' + message.text + '</div></div>';
+      $('#messagedisplay').append(html);
+    });
   }
 
   var interval;
