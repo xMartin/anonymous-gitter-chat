@@ -11,6 +11,8 @@
     return;
   }
 
+  var userId;
+
   function requestFromApi(method, resource, params) {
     return $.ajax({
       method: method,
@@ -19,6 +21,13 @@
         Authorization: 'Bearer ' + config.userAccessToken
       },
       data: params
+    });
+  }
+
+  function getUser() {
+    return requestFromApi('GET', 'user')
+    .then(function (users) {
+      return users[0];
     });
   }
 
@@ -48,7 +57,8 @@
 
     messages.forEach(function (message) {
       var date = new Date(message.sent).toLocaleTimeString();
-      var html = '<div class="message"><div>' + date + '</div><div>' + message.text + '</div></div>';
+      var authorClass = message.fromUser.id === userId ? 'own' : 'other';
+      var html = '<div class="message ' + authorClass + '"><date>' + date + '</date><div>' + message.text + '</div></div>';
       $('#messagedisplay').append(html);
     });
   }
@@ -71,7 +81,11 @@
     return requestFromApi('POST', resource, {text: text});
   }
 
-  getMessages()
+  getUser()
+  .then(function (user) {
+    userId = user.id;
+  })
+  .then(getMessages)
   .then(handleNewMessages)
   .then(startInterval)
   .catch(console.error.bind(console));

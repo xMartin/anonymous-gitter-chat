@@ -7,6 +7,13 @@
 <style>
   body {
     font-family: sans-serif;
+    margin: 0;
+  }
+  #content {
+    color: #444;
+    max-width: 30em;
+    margin: 0 auto;
+    padding: 1em;
   }
   .message {
     padding: .5em;
@@ -14,14 +21,43 @@
   .message :nth-child(1) {
     font-size: small;
   }
+  .message.other {
+    text-align: right;
+  }
+  .message > div {
+    display: inline-block;
+    max-width: 70%;
+    color: #eee;
+    background: #085987;
+    margin-bottom: 0.3em;
+    margin-left: auto;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 5px 9px;
+    text-align: left;
+    border-radius: 11px;
+  }
+  .message.own > div {
+    background: #889;
+    margin-left: 0;
+    margin-right: auto;
+    padding: 4px 8px;
+  }
+  date {
+    display: block;
+    font-size: 65%;
+    color: gray;
+  }
   #messagebox {
     width: 100%;
   }
 </style>
 
-<div id="messagedisplay"></div>
-<textarea id="messagebox"></textarea>
-<button id="sendbutton">send</button>
+<div id="content">
+  <div id="messagedisplay"></div>
+  <textarea id="messagebox"></textarea>
+  <button id="sendbutton">send</button>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 <script>
