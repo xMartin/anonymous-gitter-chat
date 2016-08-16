@@ -86,7 +86,13 @@
     userId = user.id;
   })
   .then(getMessages)
-  .then(handleNewMessages)
+  .then(function (messages) {
+    if (config.hidePastMessages) {
+      rememberLastMessageId(messages);
+    } else {
+      handleNewMessages(messages);
+    }
+  })
   .then(startInterval)
   .catch(console.error.bind(console));
 

@@ -17,6 +17,18 @@ The room ID is part of the response of the REST API endpoint `https://api.gitter
 
 E.g. using cURL: `curl -H "Authorization: Bearer {token}" https://api.gitter.im/v1/rooms`
 
+### Options
+
+#### Hide Past Messages
+
+```javascript
+app.config.hidePastMessages = true|false;
+```
+
+**Default** `false`
+
+If `true`, only display messages that were sent since starting the app. By default, a messages history will be shown initially.
+
 ## Deploy
 
 Just serve the files in this directory with any web server.
