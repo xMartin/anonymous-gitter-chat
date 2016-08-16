@@ -7,8 +7,8 @@ This simple client-side web app let's you chat in a predefined Gitter room as a 
 Add a file `config.js` that sets the Gitter API user access token and the room ID like that:
 
 ```javascript
-window.userAccessToken = 'REPLACE_WITH_TOKEN';
-window.roomId = 'REPLACE_WITH_ROOM_ID';
+app.config.userAccessToken = 'REPLACE_WITH_TOKEN';
+app.config.roomId = 'REPLACE_WITH_ROOM_ID';
 ```
 
 The token can be found here: https://developer.gitter.im/apps.
