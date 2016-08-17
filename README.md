@@ -29,6 +29,26 @@ app.config.hidePastMessages = true|false;
 
 If `true`, only display messages that were sent since starting the app. By default, a messages history will be shown initially.
 
+#### Title
+
+```javascript
+app.config.title = "Title";
+```
+
+**Default** `""`
+
+Title of the app, displayed as a heading at the top.
+
+#### Description
+
+```javascript
+app.config.description = "Description";
+```
+
+**Default** `""`
+
+Description of the app, displayed as a paragraph below the title.
+
 ## Deploy
 
 Just serve the files in this directory with any web server.

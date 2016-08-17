@@ -104,4 +104,12 @@
     .focus();
   });
 
+  if (config.description) {
+    $('#content').prepend('<p>' + config.description + '</p>');
+  }
+
+  if (config.title) {
+    $('#content').prepend('<h1>' + config.title + '</h1>');
+  }
+
 })(app.config);
