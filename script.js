@@ -148,27 +148,23 @@
     }
   });
 
-  var MessageList = React.createClass({
-    render: function () {
-      return React.createElement('div', null,
-        this.props.messages.map(function (message) {
-          return React.createElement(Message, {key: message.id, message: message});
-        })
-      );
-    }
-  });
+  var MessageList = function (props) {
+    return React.createElement('div', null,
+      props.messages.map(function (message) {
+        return React.createElement(Message, {key: message.id, message: message});
+      })
+    );
+  };
 
-  var Message = React.createClass({
-    render: function () {
-      var message = this.props.message;
-      var date = new Date(message.sent).toLocaleTimeString();
-      var authorClass = message.fromUser.id === userId ? 'own' : 'other';
-      return React.createElement('div', {key: message.id, className: 'message ' + authorClass},
-        React.createElement('date', null, date),
-        React.createElement('div', null, message.text)
-      );
-    }
-  });
+  var Message = function (props) {
+    var message = props.message;
+    var date = new Date(message.sent).toLocaleTimeString();
+    var authorClass = message.fromUser.id === userId ? 'own' : 'other';
+    return React.createElement('div', {key: message.id, className: 'message ' + authorClass},
+      React.createElement('date', null, date),
+      React.createElement('div', null, message.text)
+    );
+  };
 
   ReactDOM.render(React.createElement(AppContainer), document.getElementById('app'));
 
