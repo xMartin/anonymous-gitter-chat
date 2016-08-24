@@ -152,13 +152,20 @@
     render: function () {
       return React.createElement('div', null,
         this.props.messages.map(function (message) {
-          var date = new Date(message.sent).toLocaleTimeString();
-          var authorClass = message.fromUser.id === userId ? 'own' : 'other';
-          return React.createElement('div', {key: message.id, className: 'message ' + authorClass},
-            React.createElement('date', null, date),
-            React.createElement('div', null, message.text)
-          )
-        }.bind(this))
+          return React.createElement(Message, {key: message.id, message: message});
+        })
+      );
+    }
+  });
+
+  var Message = React.createClass({
+    render: function () {
+      var message = this.props.message;
+      var date = new Date(message.sent).toLocaleTimeString();
+      var authorClass = message.fromUser.id === userId ? 'own' : 'other';
+      return React.createElement('div', {key: message.id, className: 'message ' + authorClass},
+        React.createElement('date', null, date),
+        React.createElement('div', null, message.text)
       );
     }
   });
