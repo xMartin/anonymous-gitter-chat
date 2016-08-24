@@ -13,8 +13,35 @@
 
   var userId;
 
+  function ajax(options) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+
+      xhr.open(options.method, options.url, true);
+
+      xhr.setRequestHeader('Content-type', 'application/json');
+      xhr.setRequestHeader('Accept', 'application/json');
+
+      if (options.headers) {
+        for (var header in options.headers) {
+          xhr.setRequestHeader(header, options.headers[header]);
+        }
+      }
+
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(JSON.parse(xhr.response));
+        } else {
+          reject();
+        }
+      };
+
+      xhr.send(JSON.stringify(options.data));
+    });
+  }
+
   function requestFromApi(method, resource, params) {
-    return $.ajax({
+    return ajax({
       method: method,
       url: 'https://api.gitter.im/v1/' + resource,
       headers: {
