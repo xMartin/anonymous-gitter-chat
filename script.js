@@ -57,7 +57,7 @@
     return requestFromApi('POST', resource, {text: text});
   }
 
-  var MessageList = React.createClass({
+  var AppContainer = React.createClass({
     getInitialState: function () {
       return {
         messages: []
@@ -94,11 +94,40 @@
     },
 
     render: function () {
+      return React.createElement(App, {
+        config: config,
+        messages: this.state.messages
+      });
+    }
+  });
+
+  var App = React.createClass({
+    handleSendButtonClick: function (event) {
+      var messageBox = this.refs.messageBox;
+      var message = messageBox.value;
+      sendMessage(message);
+      messageBox.value = '';
+      messageBox.focus();
+    },
+
+    render: function () {
+      return React.createElement('div', {className: 'app-content'},
+        config.title ? React.createElement('h1', null, config.title) : null,
+        config.description ? React.createElement('p', null, config.description) : null,
+        React.createElement(MessageList, {messages: this.props.messages}),
+        React.createElement('textarea', {ref: 'messageBox', className: 'messagebox'}),
+        React.createElement('button', {onClick: this.handleSendButtonClick}, 'send')
+      );
+    }
+  });
+
+  var MessageList = React.createClass({
+    render: function () {
       return React.createElement('div', null,
-        this.state.messages.map(function (message) {
+        this.props.messages.map(function (message) {
           var date = new Date(message.sent).toLocaleTimeString();
           var authorClass = message.fromUser.id === userId ? 'own' : 'other';
-          return React.createElement('div', {className: 'message ' + authorClass},
+          return React.createElement('div', {key: message.id, className: 'message ' + authorClass},
             React.createElement('date', null, date),
             React.createElement('div', null, message.text)
           )
@@ -107,22 +136,6 @@
     }
   });
 
-  ReactDOM.render(React.createElement(MessageList, { name: "John" }), document.getElementById('messagedisplay'));
-
-  $('#sendbutton').click(function () {
-    var message = $('#messagebox').val();
-    sendMessage(message);
-    $('#messagebox')
-    .val('')
-    .focus();
-  });
-
-  if (config.description) {
-    $('#content').prepend('<p>' + config.description + '</p>');
-  }
-
-  if (config.title) {
-    $('#content').prepend('<h1>' + config.title + '</h1>');
-  }
+  ReactDOM.render(React.createElement(AppContainer), document.getElementById('app'));
 
 })(app.config);
