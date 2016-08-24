@@ -132,7 +132,9 @@
     handleSendButtonClick: function (event) {
       var messageBox = this.refs.messageBox;
       var message = messageBox.value;
-      sendMessage(message);
+      if (message) {
+        sendMessage(message);
+      }
       messageBox.value = '';
       messageBox.focus();
     },
