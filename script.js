@@ -52,49 +52,62 @@
     }
   }
 
-  function handleNewMessages(messages) {
-    rememberLastMessageId(messages);
-
-    messages.forEach(function (message) {
-      var date = new Date(message.sent).toLocaleTimeString();
-      var authorClass = message.fromUser.id === userId ? 'own' : 'other';
-      var html = '<div class="message ' + authorClass + '"><date>' + date + '</date><div>' + message.text + '</div></div>';
-      $('#messagedisplay').append(html);
-    });
-  }
-
-  var interval;
-  function startInterval() {
-    interval = setInterval(function () {
-      getMessages(lastMessageId)
-      .then(handleNewMessages)
-      .catch(console.error.bind(console));
-    }, 3000);
-  }
-
-  function stopInterval() {
-    clearInterval(interval);
-  }
-
   function sendMessage(text) {
     var resource = 'rooms/' + config.roomId + '/chatMessages';
     return requestFromApi('POST', resource, {text: text});
   }
 
-  getUser()
-  .then(function (user) {
-    userId = user.id;
-  })
-  .then(getMessages)
-  .then(function (messages) {
-    if (config.hidePastMessages) {
-      rememberLastMessageId(messages);
-    } else {
-      handleNewMessages(messages);
+  var MessageList = React.createClass({
+    getInitialState: function () {
+      return {
+        messages: []
+      }
+    },
+
+    componentDidMount: function () {
+      getUser()
+      .then(function (user) {
+        userId = user.id;
+      })
+      .then(getMessages)
+      .then(function (messages) {
+        rememberLastMessageId(messages);
+        if (!config.hidePastMessages) {
+          this.setState({
+            messages: this.state.messages.concat(messages)
+          });
+        }
+      }.bind(this))
+      .then(function () {
+        setInterval(function () {
+          getMessages(lastMessageId)
+          .then(function (messages) {
+            rememberLastMessageId(messages);
+            this.setState({
+              messages: this.state.messages.concat(messages)
+            });
+          }.bind(this))
+          .catch(console.error.bind(console));
+        }.bind(this), 3000);
+      }.bind(this))
+      .catch(console.error.bind(console));
+    },
+
+    render: function () {
+      return React.createElement('div', null,
+        this.state.messages.map(function (message) {
+          var date = new Date(message.sent).toLocaleTimeString();
+          var authorClass = message.fromUser.id === userId ? 'own' : 'other';
+          return React.createElement('div', {className: 'message ' + authorClass},
+            React.createElement('date', null, date),
+            React.createElement('div', null, message.text)
+          )
+        }.bind(this))
+      );
     }
-  })
-  .then(startInterval)
-  .catch(console.error.bind(console));
+  });
+
+  ReactDOM.render(React.createElement(MessageList, { name: "John" }), document.getElementById('messagedisplay'));
 
   $('#sendbutton').click(function () {
     var message = $('#messagebox').val();
