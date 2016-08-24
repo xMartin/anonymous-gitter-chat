@@ -14,51 +14,63 @@
   var userId;
 
   function ajax(options) {
-    return new Promise(function (resolve, reject) {
-      var xhr = new XMLHttpRequest();
+    var xhr = new XMLHttpRequest();
 
-      xhr.open(options.method, options.url, true);
+    xhr.open(options.method, options.url, true);
 
-      xhr.setRequestHeader('Content-type', 'application/json');
-      xhr.setRequestHeader('Accept', 'application/json');
+    xhr.setRequestHeader('Content-type', 'application/json');
+    xhr.setRequestHeader('Accept', 'application/json');
 
-      if (options.headers) {
-        for (var header in options.headers) {
-          xhr.setRequestHeader(header, options.headers[header]);
+    if (options.headers) {
+      for (var header in options.headers) {
+        xhr.setRequestHeader(header, options.headers[header]);
+      }
+    }
+
+    xhr.onload = function() {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        if (options.success) {
+          options.success(JSON.parse(xhr.response));
+        }
+      } else {
+        if (options.error) {
+          options.error('Error communicating with the server.');
         }
       }
+    };
 
-      xhr.onload = function() {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(JSON.parse(xhr.response));
-        } else {
-          reject();
-        }
-      };
+    xhr.onerror = options.error;
 
-      xhr.send(JSON.stringify(options.data));
-    });
+    xhr.send(JSON.stringify(options.data));
   }
 
-  function requestFromApi(method, resource, params) {
-    return ajax({
+  function handleError() {
+    console.error.apply(console, arguments);
+    alert('Error fetching or sending data.');
+  }
+
+  function requestFromApi(method, resource, success, error, params) {
+    ajax({
       method: method,
       url: 'https://api.gitter.im/v1/' + resource,
       headers: {
         Authorization: 'Bearer ' + config.userAccessToken
       },
-      data: params
+      data: params,
+      success: success,
+      error: error
     });
   }
 
-  function getUser() {
-    return requestFromApi('GET', 'user')
-    .then(function (users) {
-      return users[0];
-    });
+  function getUser(success, error) {
+    var userSuccess = function (users) {
+      success(users[0]);
+    };
+
+    requestFromApi('GET', 'user', userSuccess, error);
   }
 
-  function getMessages(afterId) {
+  function getMessages(success, error, afterId) {
     var resource = 'rooms/' + config.roomId + '/chatMessages';
 
     var params;
@@ -68,7 +80,7 @@
       }
     }
 
-    return requestFromApi('GET', resource, params);
+    requestFromApi('GET', resource, success, error, params);
   }
 
   var lastMessageId;
@@ -79,9 +91,9 @@
     }
   }
 
-  function sendMessage(text) {
+  function sendMessage(text, success, error) {
     var resource = 'rooms/' + config.roomId + '/chatMessages';
-    return requestFromApi('POST', resource, {text: text});
+    requestFromApi('POST', resource, success, error, {text: text});
   }
 
   var AppContainer = React.createClass({
@@ -92,32 +104,29 @@
     },
 
     componentDidMount: function () {
-      getUser()
-      .then(function (user) {
+      var self = this;
+
+      getUser(function (user) {
         userId = user.id;
-      })
-      .then(getMessages)
-      .then(function (messages) {
-        rememberLastMessageId(messages);
-        if (!config.hidePastMessages) {
-          this.setState({
-            messages: this.state.messages.concat(messages)
-          });
-        }
-      }.bind(this))
-      .then(function () {
-        setInterval(function () {
-          getMessages(lastMessageId)
-          .then(function (messages) {
-            rememberLastMessageId(messages);
-            this.setState({
-              messages: this.state.messages.concat(messages)
+
+        getMessages(function (messages) {
+          rememberLastMessageId(messages);
+          if (!config.hidePastMessages) {
+            self.setState({
+              messages: self.state.messages.concat(messages)
             });
-          }.bind(this))
-          .catch(console.error.bind(console));
-        }.bind(this), 3000);
-      }.bind(this))
-      .catch(console.error.bind(console));
+          }
+
+          setInterval(function () {
+            getMessages(function (messages) {
+              rememberLastMessageId(messages);
+              self.setState({
+                messages: self.state.messages.concat(messages)
+              });
+            }, handleError, lastMessageId);
+          }, 3000);
+        }, handleError);
+      }, handleError);
     },
 
     render: function () {
