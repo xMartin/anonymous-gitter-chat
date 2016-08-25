@@ -16,7 +16,23 @@
   function ajax(options) {
     var xhr = new XMLHttpRequest();
 
-    xhr.open(options.method, options.url, true);
+    var query = '';
+    var payload;
+    if (options.data) {
+      if (options.method === 'GET') {
+        for (var key in options.data) {
+          query += '&' + key + '=' + options.data[key];
+        }
+        if (query) {
+          query = '?' + query.substring(1);
+        }
+      }
+      if (options.method === 'POST') {
+        payload = JSON.stringify(options.data);
+      }
+    }
+
+    xhr.open(options.method, options.url + query, true);
 
     xhr.setRequestHeader('Content-type', 'application/json');
     xhr.setRequestHeader('Accept', 'application/json');
@@ -41,7 +57,7 @@
 
     xhr.onerror = options.error;
 
-    xhr.send(JSON.stringify(options.data));
+    xhr.send(payload);
   }
 
   function handleError() {
