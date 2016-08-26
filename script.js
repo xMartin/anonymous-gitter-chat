@@ -11,8 +11,6 @@
     return;
   }
 
-  var userId;
-
   function ajax(options) {
     var xhr = new XMLHttpRequest();
 
@@ -78,7 +76,7 @@
     });
   }
 
-  function getUser(success, error) {
+  function fetchUser(success, error) {
     var userSuccess = function (users) {
       success(users[0]);
     };
@@ -86,7 +84,7 @@
     requestFromApi('GET', 'user', userSuccess, error);
   }
 
-  function getMessages(success, error, afterId) {
+  function fetchMessages(success, error, afterId) {
     var resource = 'rooms/' + config.roomId + '/chatMessages';
 
     var params;
@@ -99,12 +97,9 @@
     requestFromApi('GET', resource, success, error, params);
   }
 
-  var lastMessageId;
-  function rememberLastMessageId(messages) {
+  function getLastMessageId(messages) {
     var lastMessage = messages[messages.length - 1];
-    if (lastMessage) {
-      lastMessageId = lastMessage.id;
-    }
+    return lastMessage && lastMessage.id;
   }
 
   function sendMessage(text, success, error) {
@@ -122,20 +117,25 @@
     componentDidMount: function () {
       var self = this;
 
-      getUser(function (user) {
+      var userId;
+      var lastMessageId;
+
+      fetchUser(function (user) {
         userId = user.id;
 
-        getMessages(function (messages) {
-          rememberLastMessageId(messages);
+        fetchMessages(function (messages) {
+          lastMessageId = getLastMessageId(messages) || lastMessageId;
           if (!config.hidePastMessages) {
+            messages = self.transformMessages(messages, userId);
             self.setState({
               messages: self.state.messages.concat(messages)
             });
           }
 
           setInterval(function () {
-            getMessages(function (messages) {
-              rememberLastMessageId(messages);
+            fetchMessages(function (messages) {
+              lastMessageId = getLastMessageId(messages) || lastMessageId;
+              messages = self.transformMessages(messages, userId);
               self.setState({
                 messages: self.state.messages.concat(messages)
               });
@@ -145,10 +145,25 @@
       }, handleError);
     },
 
+    transformMessages: function (messages, userId) {
+      return messages.map(function (message) {
+        if (message.fromUser.id === userId) {
+          message.fromMe = true;
+        }
+
+        return message;
+      });
+    },
+
+    handleSendMessage: function (message) {
+      sendMessage(message);
+    },
+
     render: function () {
       return React.createElement(App, {
         config: config,
-        messages: this.state.messages
+        messages: this.state.messages,
+        onSendMessage: this.handleSendMessage
       });
     }
   });
@@ -158,7 +173,7 @@
       var messageBox = this.refs.messageBox;
       var message = messageBox.value;
       if (message) {
-        sendMessage(message);
+        this.props.onSendMessage(message);
       }
       messageBox.value = '';
       messageBox.focus();
@@ -186,7 +201,7 @@
   var Message = function (props) {
     var message = props.message;
     var date = new Date(message.sent).toLocaleTimeString();
-    var authorClass = message.fromUser.id === userId ? 'own' : 'other';
+    var authorClass = message.fromMe ? 'own' : 'other';
     return React.createElement('div', {key: message.id, className: 'message ' + authorClass},
       React.createElement('date', null, date),
       React.createElement('div', null, message.text)
